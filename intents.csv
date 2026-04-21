@@ -1,0 +1,305 @@
+text,intent
+привет,greeting
+здравствуйте,greeting
+добрый день,greeting
+добрый вечер,greeting
+доброе утро,greeting
+хай,greeting
+приветствую,greeting
+здорово,greeting
+приветик,greeting
+хелло,greeting
+приве,greeting
+здрасте,greeting
+рад тебя видеть,greeting
+доброго времени суток,greeting
+привет бот,greeting
+начнём,greeting
+ку,greeting
+hello,greeting
+hi,greeting
+hey,greeting
+good morning,greeting
+good evening,greeting
+рад тебя слышать,greeting
+начать,greeting
+yo,greeting
+ку ку,greeting
+алло,greeting
+есть кто,greeting
+отзовись,greeting
+ну здравствуй,greeting
+хелоу,greeting
+доброго дня,greeting
+привет привет,greeting
+здравия желаю,greeting
+рад приветствовать,greeting
+хола,greeting
+салют,greeting
+моё почтение,greeting
+доброго утречка,greeting
+снова привет,greeting
+о привет,greeting
+привет дружище,greeting
+ты здесь,greeting
+начнем разговор,greeting
+запускаемся,greeting
+ещё раз привет,greeting
+рад видеть тебя,greeting
+бот ты тут,greeting
+эй,greeting
+приветствую тебя,greeting
+пока,farewell
+до свидания,farewell
+увидимся,farewell
+до встречи,farewell
+прощай,farewell
+пока пока,farewell
+до скорого,farewell
+спокойной ночи,farewell
+ухожу,farewell
+завершить разговор,farewell
+выхожу,farewell
+на этом всё,farewell
+на сегодня всё,farewell
+goodbye,farewell
+bye,farewell
+see you,farewell
+good night,farewell
+до завтра,farewell
+до новых встреч,farewell
+откланиваюсь,farewell
+мне пора,farewell
+я пойду,farewell
+давай пока,farewell
+бывай,farewell
+до связи,farewell
+спокойной ночи бот,farewell
+отключаюсь,farewell
+выхожу из чата,farewell
+завершаю сеанс,farewell
+на этом заканчиваем,farewell
+bye bye,farewell
+cya,farewell
+later,farewell
+до послезавтра,farewell
+всё на сегодня,farewell
+заканчиваем разговор,farewell
+пора прощаться,farewell
+давай попрощаемся,farewell
+завершаем общение,farewell
+пора заканчивать разговор,farewell
+иду отдыхать,farewell
+отключаюсь до завтра,farewell
+выхожу прощай,farewell
+заканчиваю сеанс,farewell
+ухожу до свидания,farewell
+пока прощаюсь,farewell
+до следующего раза,farewell
+увидимся завтра,farewell
+расстаёмся,farewell
+прощаюсь с тобой,farewell
+какая погода,weather
+погода в москве,weather
+будет ли дождь,weather
+ожидаются осадки,weather
+будет ли снег,weather
+будут ли осадки завтра,weather
+холодно ли на улице,weather
+нужно ли брать зонт,weather
+прогноз погоды,weather
+сколько градусов,weather
+какая температура,weather
+погода на завтра,weather
+что с погодой,weather
+как погода сегодня,weather
+тепло ли сегодня,weather
+будет ли гроза,weather
+нужна ли куртка,weather
+что за погода на улице,weather
+какой прогноз на неделю,weather
+скажи погоду,weather
+покажи погоду,weather
+узнать погоду,weather
+температура воздуха,weather
+погода в питере,weather
+погода в новосибирске,weather
+дождь сегодня будет,weather
+снег ожидается,weather
+ветер сильный будет,weather
+погода в екатеринбурге,weather
+погода в казани,weather
+погода в краснодаре,weather
+погода завтра утром,weather
+что на улице,weather
+мне выходить одеться потеплее,weather
+какой прогноз на выходные,weather
+брать ли зонтик,weather
+погода в воскресенье,weather
+ожидается ли гололёд,weather
+какая погода в санкт-петербурге,weather
+погода на послезавтра,weather
+прогноз на сегодня,weather
+как там за окном,weather
+что там с погодой на улице,weather
+выпадет ли снег сегодня,weather
+нужно ли тепло одеться,weather
+погода в омске,weather
+погода в самаре,weather
+температура на завтра,weather
+облачно ли сегодня,weather
+прояснится ли,weather
+как дела,how_are_you
+как ты,how_are_you
+как у тебя дела,how_are_you
+как поживаешь,how_are_you
+что нового у тебя,how_are_you
+как жизнь,how_are_you
+как ты себя чувствуешь,how_are_you
+ты в порядке,how_are_you
+как настроение,how_are_you
+как твои дела,how_are_you
+как работается,how_are_you
+как ты там,how_are_you
+ты как,how_are_you
+как оно,how_are_you
+что у тебя нового,how_are_you
+расскажи о себе,how_are_you
+how are you,how_are_you
+how are you doing,how_are_you
+how do you feel,how_are_you
+are you okay,how_are_you
+what's up,how_are_you
+how's it going,how_are_you
+как делишки,how_are_you
+как жизнь молодая,how_are_you
+как сам,how_are_you
+нормально ли тебе,how_are_you
+не устал ли ты,how_are_you
+как себя чувствуешь,how_are_you
+расскажи как ты,how_are_you
+как работа идёт,how_are_you
+ты в норме,how_are_you
+как дела у тебя,how_are_you
+как обстановка,how_are_you
+что слышно у тебя,how_are_you
+как поживаете,how_are_you
+ты живой,how_are_you
+всё в порядке у тебя,how_are_you
+много работаешь,how_are_you
+как настрой,how_are_you
+как дела дружище,how_are_you
+как жизнь бьёт ключом,how_are_you
+как настроеньице,how_are_you
+чувствуешь себя хорошо,how_are_you
+как самочувствие,how_are_you
+как твоё самочувствие,how_are_you
+ты как себя чувствуешь,how_are_you
+хорошо ли тебе,how_are_you
+как ты поживаешь,how_are_you
+всё нормально у тебя,how_are_you
+как твоё настроение,how_are_you
+сколько времени,time
+который час,time
+какое время,time
+сколько сейчас время,time
+что за время сейчас,time
+скажи время,time
+покажи время,time
+текущее время,time
+сейчас сколько,time
+время сейчас,time
+который сейчас час,time
+сколько на часах,time
+что показывают часы,time
+what time is it,time
+what's the time,time
+tell me the time,time
+current time,time
+time please,time
+скажи мне время,time
+какое сейчас время суток,time
+точное время,time
+московское время,time
+местное время,time
+сколько часов,time
+время по москве,time
+скажи точное время,time
+что сейчас за час,time
+который час сейчас в москве,time
+сколько сейчас часов,time
+скажи мне который час,time
+уточни время,time
+текущий час,time
+назови время,time
+сообщи время,time
+время пожалуйста,time
+ты знаешь время,time
+скажи который час,time
+который час у тебя,time
+что на часах сейчас,time
+подскажи время,time
+узнать текущее время,time
+покажи текущее время,time
+скажи актуальное время,time
+который час прямо сейчас,time
+время в данный момент,time
+сколько времени сейчас,time
+скажи сколько времени,time
+меня зовут иван,set_name
+меня зовут мария,set_name
+меня зовут андрей,set_name
+меня зовут екатерина,set_name
+я алексей,set_name
+я наташа,set_name
+я дмитрий,set_name
+я ольга,set_name
+моё имя сергей,set_name
+моё имя анна,set_name
+моё имя николай,set_name
+моё имя юлия,set_name
+зовите меня саша,set_name
+зовите меня макс,set_name
+зови меня антон,set_name
+зови меня лена,set_name
+можешь звать меня олег,set_name
+можешь звать меня света,set_name
+меня называют виктор,set_name
+меня называют таня,set_name
+my name is alex,set_name
+my name is sarah,set_name
+i am john,set_name
+i am emily,set_name
+call me mike,set_name
+call me kate,set_name
+i'm david,set_name
+i'm anna,set_name
+меня зовут павел,set_name
+меня зовут наталья,set_name
+я владимир,set_name
+я кристина,set_name
+моё имя артём,set_name
+моё имя валерия,set_name
+зовите меня игорь,set_name
+зови меня настя,set_name
+можешь звать меня роман,set_name
+можешь звать меня дарья,set_name
+меня называют михаил,set_name
+меня называют алина,set_name
+моё имя денис,set_name
+имя у меня тимур,set_name
+называй меня женя,set_name
+называй меня соня,set_name
+я буду ваня,set_name
+я маша,set_name
+зови просто лёша,set_name
+имя никита,set_name
+my name is peter,set_name
+i'm julia,set_name
+you can call me nick,set_name
+my name is victoria,set_name
+call me sam,set_name
+меня зовут степан,set_name
+меня зовут вера,set_name
+я борис,set_name
+я тамара,set_name

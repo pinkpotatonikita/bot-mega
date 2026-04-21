@@ -53,7 +53,10 @@ class Handlers:
 
     def handle_name_response(self, name: str) -> str:
         """Вызывается когда пользователь ответил на вопрос 'Как вас зовут?'."""
-        return self._save_name(name)
+        cleaned = name.strip()
+        if len(cleaned) < 2 or not any(c.isalpha() for c in cleaned):
+            return "Пожалуйста, скажите ваше имя."
+        return self._save_name(cleaned)
 
     def _save_name(self, name: str) -> str:
         dialog_manager.reset(_GUEST_ID)          # чистим гостевое состояние
@@ -77,6 +80,9 @@ class Handlers:
         if city:
             self._reset()
             weather = weather_api.get_weather_direct(city)
+            if 'error' in weather:
+                self._set_state(DialogState.WAIT_CITY)
+                return f"❌ Город \"{city}\" не найден. Проверьте написание и введите снова:"
             return weather_api.format_weather_message(weather)
 
         self._set_state(DialogState.WAIT_CITY)
@@ -106,7 +112,13 @@ class Handlers:
 
         offset, label = self._parse_date_offset(date_text)
         weather = weather_api.get_weather_direct(city)
-        result  = weather_api.format_weather_message(weather)
+
+        if 'error' in weather:
+            # Город не найден — возвращаемся в WAIT_CITY чтобы пользователь мог исправить
+            self._set_state(DialogState.WAIT_CITY)
+            return f"❌ Город \"{city}\" не найден. Проверьте написание и введите снова:"
+
+        result = weather_api.format_weather_message(weather)
         return result if offset == 0 else f"Прогноз на {label}:\n{result}"
 
     @staticmethod

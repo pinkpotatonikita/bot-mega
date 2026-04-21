@@ -1,3 +1,4 @@
+import os
 import spacy
 from spacy.matcher import Matcher
 import re
@@ -6,6 +7,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.preprocessing import normalize
 from sklearn.metrics import classification_report
+
+# ── BERT-классификатор (Fine-Tuned RuBERT) ────────────────────────────────────
+# Загружается один раз при импорте. Если модель не обучена — is_ready=False,
+# и classify_intent автоматически использует Word Embeddings как fallback.
+try:
+    from bert_classifier import bert_classifier as _bert
+except ImportError:
+    _bert = None
 
 
 class NLPProcessor:
@@ -38,181 +47,19 @@ class NLPProcessor:
 
     def _get_training_data(self):
         """
-        Расширенная обучающая выборка.
-        Каждый интент — ~25-30 фраз, включая перефразировки,
-        разговорные варианты и типичные ошибки пользователей.
+        Загружает обучающую выборку из intents.csv (рядом с этим файлом).
+        Если файл не найден — падает с понятной ошибкой.
         """
-        return [
-            # ── greeting ──────────────────────────────────────────────────────
-            ("привет", "greeting"),
-            ("здравствуйте", "greeting"),
-            ("добрый день", "greeting"),
-            ("добрый вечер", "greeting"),
-            ("доброе утро", "greeting"),
-            ("хай", "greeting"),
-            ("приветствую", "greeting"),
-            ("здорово", "greeting"),
-            ("приветик", "greeting"),
-            ("хелло", "greeting"),
-            ("приве", "greeting"),
-            ("здрасте", "greeting"),
-            ("рад тебя видеть", "greeting"),
-            ("рад тебя слышать", "greeting"),
-            ("доброго времени суток", "greeting"),
-            ("привет бот", "greeting"),
-            ("начнём", "greeting"),
-            ("начать", "greeting"),
-            ("ку", "greeting"),
-            ("yo", "greeting"),
-            ("hello", "greeting"),
-            ("hi", "greeting"),
-            ("hey", "greeting"),
-            ("good morning", "greeting"),
-            ("good evening", "greeting"),
-
-            # ── farewell ──────────────────────────────────────────────────────
-            ("пока", "farewell"),
-            ("до свидания", "farewell"),
-            ("увидимся", "farewell"),
-            ("до встречи", "farewell"),
-            ("всего хорошего", "farewell"),
-            ("прощай", "farewell"),
-            ("пока пока", "farewell"),
-            ("до скорого", "farewell"),
-            ("удачи", "farewell"),
-            ("всего доброго", "farewell"),
-            ("спокойной ночи", "farewell"),
-            ("ухожу", "farewell"),
-            ("завершить разговор", "farewell"),
-            ("выхожу", "farewell"),
-            ("на этом всё", "farewell"),
-            ("на сегодня всё", "farewell"),
-            ("goodbye", "farewell"),
-            ("bye", "farewell"),
-            ("see you", "farewell"),
-            ("good night", "farewell"),
-            ("до завтра", "farewell"),
-            ("конец", "farewell"),
-            ("стоп", "farewell"),
-            ("хватит", "farewell"),
-
-            # ── weather ───────────────────────────────────────────────────────
-            ("какая погода", "weather"),
-            ("погода в москве", "weather"),
-            ("будет ли дождь", "weather"),
-            ("ожидаются осадки", "weather"),
-            ("будет ли снег", "weather"),
-            ("будут ли осадки завтра", "weather"),
-            ("холодно ли на улице", "weather"),
-            ("нужно ли брать зонт", "weather"),
-            ("прогноз погоды", "weather"),
-            ("сколько градусов", "weather"),
-            ("какая температура", "weather"),
-            ("погода на завтра", "weather"),
-            ("что с погодой", "weather"),
-            ("как погода сегодня", "weather"),
-            ("на улице тепло", "weather"),
-            ("на улице холодно", "weather"),
-            ("тепло ли сегодня", "weather"),
-            ("будет ли гроза", "weather"),
-            ("нужна ли куртка", "weather"),
-            ("что за погода на улице", "weather"),
-            ("какой прогноз на неделю", "weather"),
-            ("скажи погоду", "weather"),
-            ("покажи погоду", "weather"),
-            ("узнать погоду", "weather"),
-            ("температура воздуха", "weather"),
-            ("погода в питере", "weather"),
-            ("погода в новосибирске", "weather"),
-            ("дождь сегодня будет", "weather"),
-            ("снег ожидается", "weather"),
-            ("ветер сильный будет", "weather"),
-
-            # ── how_are_you ───────────────────────────────────────────────────
-            ("как дела", "how_are_you"),
-            ("как ты", "how_are_you"),
-            ("как у тебя дела", "how_are_you"),
-            ("как поживаешь", "how_are_you"),
-            ("что нового", "how_are_you"),
-            ("как жизнь", "how_are_you"),
-            ("как ты себя чувствуешь", "how_are_you"),
-            ("всё хорошо", "how_are_you"),
-            ("ты в порядке", "how_are_you"),
-            ("как настроение", "how_are_you"),
-            ("как твои дела", "how_are_you"),
-            ("как работается", "how_are_you"),
-            ("как ты там", "how_are_you"),
-            ("ты как", "how_are_you"),
-            ("всё норм", "how_are_you"),
-            ("как оно", "how_are_you"),
-            ("что у тебя нового", "how_are_you"),
-            ("расскажи о себе", "how_are_you"),
-            ("how are you", "how_are_you"),
-            ("how are you doing", "how_are_you"),
-            ("how do you feel", "how_are_you"),
-            ("are you okay", "how_are_you"),
-            ("what's up", "how_are_you"),
-            ("how's it going", "how_are_you"),
-
-            # ── time ──────────────────────────────────────────────────────────
-            ("сколько времени", "time"),
-            ("который час", "time"),
-            ("какое время", "time"),
-            ("сколько сейчас время", "time"),
-            ("что за время сейчас", "time"),
-            ("скажи время", "time"),
-            ("покажи время", "time"),
-            ("текущее время", "time"),
-            ("сейчас сколько", "time"),
-            ("время сейчас", "time"),
-            ("который сейчас час", "time"),
-            ("уже поздно", "time"),
-            ("уже утро", "time"),
-            ("сколько на часах", "time"),
-            ("что показывают часы", "time"),
-            ("what time is it", "time"),
-            ("what's the time", "time"),
-            ("tell me the time", "time"),
-            ("current time", "time"),
-            ("time please", "time"),
-
-            # ── set_name ──────────────────────────────────────────────────────
-            # меня зовут X
-            ("меня зовут иван", "set_name"),
-            ("меня зовут мария", "set_name"),
-            ("меня зовут андрей", "set_name"),
-            ("меня зовут екатерина", "set_name"),
-            # я X
-            ("я алексей", "set_name"),
-            ("я наташа", "set_name"),
-            ("я дмитрий", "set_name"),
-            ("я ольга", "set_name"),
-            # моё имя X
-            ("моё имя сергей", "set_name"),
-            ("моё имя анна", "set_name"),
-            ("моё имя николай", "set_name"),
-            ("моё имя юлия", "set_name"),
-            # зовите / зови меня X
-            ("зовите меня саша", "set_name"),
-            ("зовите меня макс", "set_name"),
-            ("зови меня антон", "set_name"),
-            ("зови меня лена", "set_name"),
-            # можешь звать меня X
-            ("можешь звать меня олег", "set_name"),
-            ("можешь звать меня света", "set_name"),
-            # меня называют X
-            ("меня называют виктор", "set_name"),
-            ("меня называют таня", "set_name"),
-            # english
-            ("my name is alex", "set_name"),
-            ("my name is sarah", "set_name"),
-            ("i am john", "set_name"),
-            ("i am emily", "set_name"),
-            ("call me mike", "set_name"),
-            ("call me kate", "set_name"),
-            ("i'm david", "set_name"),
-            ("i'm anna", "set_name"),
-        ]
+        import csv
+        csv_path = os.path.join(os.path.dirname(__file__), "intents.csv")
+        if not os.path.exists(csv_path):
+            raise FileNotFoundError(
+                f"Файл {csv_path} не найден. "
+                "Положите intents.csv рядом с nlp_processor.py"
+            )
+        with open(csv_path, encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            return [(row["text"], row["intent"]) for row in reader]
 
     # ──────────────────────────────────────────────────────────────────────────
     # Векторизация: взвешенные embeddings (IDF-подобный подход)
@@ -310,16 +157,26 @@ class NLPProcessor:
 
     def classify_intent(self, text: str, threshold: float = None) -> str | None:
         """
-        Определяет интент с помощью Word Embeddings.
-        Возвращает название интента или None, если уверенность ниже порога.
+        Определяет интент текста.
 
-        threshold=None → используется автоматически подобранный порог.
+        Стратегия (двухуровневый fallback):
+          1. Fine-Tuned RuBERT (bert_classifier) — если модель обучена и готова.
+          2. Word Embeddings + LogisticRegression (spaCy) — если BERT недоступен.
+
+        threshold применяется только для Word Embeddings (BERT всегда возвращает argmax).
         """
-        if not self.intent_classifier:
-            return None
-
         cleaned = text.strip()
         if len(cleaned) < 2:
+            return None
+
+        # ── Уровень 1: Fine-Tuned BERT ────────────────────────────────────────
+        if _bert is not None and _bert.is_ready:
+            result = _bert.predict(cleaned)
+            if result:
+                return result
+
+        # ── Уровень 2: Word Embeddings fallback ───────────────────────────────
+        if not self.intent_classifier:
             return None
 
         vec = self._vectorize(cleaned).reshape(1, -1)

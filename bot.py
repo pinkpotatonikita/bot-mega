@@ -78,6 +78,8 @@ class ChatBot:
         # ── WAIT_CITY: ждём город ─────────────────────────────────────────────
         if state == DialogState.WAIT_CITY:
             # Если пользователь написал что-то явно не про город — сбрасываем
+            # в handlers.py, где обрабатывается 404
+
             if NON_CITY_PATTERNS.match(processed):
                 self.handlers._reset()
                 # Обрабатываем как обычное сообщение (fallthrough ниже)
