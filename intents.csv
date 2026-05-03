@@ -184,7 +184,6 @@ how's it going,how_are_you
 как обстановка,how_are_you
 что слышно у тебя,how_are_you
 как поживаете,how_are_you
-ты живой,how_are_you
 всё в порядке у тебя,how_are_you
 много работаешь,how_are_you
 как настрой,how_are_you
@@ -303,3 +302,236 @@ call me sam,set_name
 меня зовут вера,set_name
 я борис,set_name
 я тамара,set_name
+что ты умеешь,smalltalk
+что ты можешь,smalltalk
+на что ты способен,smalltalk
+твои возможности,smalltalk
+помоги мне,smalltalk
+нужна помощь,smalltalk
+помощь,smalltalk
+справка,smalltalk
+как ты работаешь,smalltalk
+ты бот,smalltalk
+кто ты,smalltalk
+что ты такое,smalltalk
+ты робот,smalltalk
+ты человек или бот,smalltalk
+кто тебя создал,smalltalk
+откуда ты,smalltalk
+зачем ты нужен,smalltalk
+чем ты можешь помочь,smalltalk
+что умеет бот,smalltalk
+какие у тебя функции,smalltalk
+что ты знаешь,smalltalk
+расскажи про себя,smalltalk
+ты умный,smalltalk
+что ты делаешь,smalltalk
+как с тобой общаться,smalltalk
+ты понимаешь меня,smalltalk
+как тебя использовать,smalltalk
+что ты за программа,smalltalk
+ты искусственный интеллект,smalltalk
+что ты можешь делать,smalltalk
+покажи что умеешь,smalltalk
+расскажи о своих возможностях,smalltalk
+что мне спросить у тебя,smalltalk
+как начать разговор,smalltalk
+чему ты обучен,smalltalk
+ты отвечаешь на вопросы,smalltalk
+для чего ты,smalltalk
+что интересного ты умеешь,smalltalk
+помоги разобраться,smalltalk
+не знаю что спросить,smalltalk
+что можно у тебя узнать,smalltalk
+ты можешь мне помочь,smalltalk
+как ты устроен,smalltalk
+кто тебя придумал,smalltalk
+что за бот,smalltalk
+объясни что ты умеешь,smalltalk
+перечисли свои навыки,smalltalk
+какие темы ты знаешь,smalltalk
+что ты за система,smalltalk
+сколько будет 5 умножить на 3,math_word
+восемь плюс три,math_word
+двадцать минус пять,math_word
+сто делить на четыре,math_word
+три умножить на семь,math_word
+пять плюс десять,math_word
+девять минус два,math_word
+шесть умножить на восемь,math_word
+сорок разделить на пять,math_word
+два плюс два,math_word
+сколько будет восемь плюс 47,math_word
+сколько будет семь умножить на шесть,math_word
+посчитай три плюс четыре,math_word
+посчитай десять минус три,math_word
+посчитай пять умножить на пять,math_word
+сколько будет двадцать делить на четыре,math_word
+вычисли восемь плюс двенадцать,math_word
+сколько будет сто минус сорок,math_word
+три в степени два,math_word
+два в степени десять,math_word
+сколько будет шесть плюс девять,math_word
+посчитай двадцать умножить на три,math_word
+сколько будет пятьдесят делить на десять,math_word
+семь минус три,math_word
+четыре плюс восемь,math_word
+2*70,multiplication
+3*5,multiplication
+10*4,multiplication
+7 * 8,multiplication
+12*12,multiplication
+100/4,division
+15/3,division
+9/3,division
+100 / 5,division
+2^8,power
+3^3,power
+10^2,power
+расскажи анекдот,joke
+анекдот,joke
+расскажи шутку,joke
+пошути,joke
+смешной анекдот,joke
+хочу посмеяться,joke
+посмеши меня,joke
+давай анекдот,joke
+есть анекдот,joke
+расскажи что-нибудь смешное,joke
+хочу анекдот,joke
+можешь пошутить,joke
+шутка,joke
+давай посмеёмся,joke
+знаешь анекдот,joke
+есть что-то смешное,joke
+пошути надо мной,joke
+можешь рассказать анекдот,joke
+хочу шутку,joke
+смеши меня,joke
+анекдот пожалуйста,joke
+ну-ка пошути,joke
+расскажи смешное,joke
+давай анекдот расскажи,joke
+хочу посмеяться с тобой,joke
+4*5,multiplication
+6*7,multiplication
+3 * 4,multiplication
+12*12,multiplication
+8 * 9,multiplication
+2 умножить на 6,multiplication
+три умножить на четыре,multiplication
+умножь 5 на 3,multiplication
+сколько будет 7 умножить на 8,multiplication
+15/3,division
+20 / 4,division
+100/10,division
+9 разделить на 3,multiplication
+сорок разделить на восемь,division
+сколько будет 12 разделить на 4,division
+раздели 81 на 9,division
+2**10,power
+3^4,power
+5 в степени 2,power
+два в степени восемь,power
+возведи 3 в степень 3,power
+сколько будет 2 в степени 10,power
+составь плейлист,playlist
+подбери музыку,playlist
+плейлист для грусти,playlist
+музыка для тренировки,playlist
+что послушать,playlist
+хочу послушать музыку,playlist
+плейлист по настроению,playlist
+музыка для работы,playlist
+музыка для отдыха,playlist
+посоветуй музыку,playlist
+плейлист на вечер,playlist
+музыка для медитации,playlist
+грустный плейлист,playlist
+весёлая музыка,playlist
+спокойная музыка,playlist
+музыка для учёбы,playlist
+романтическая музыка,playlist
+энергичная музыка,playlist
+ночная музыка,playlist
+утренняя музыка,playlist
+сколько будет 15 разделить на 3,division
+раздели 20 на 4,division
+8 разделить на 2,division
+раздели 100 на 10,division
+сколько будет 81 разделить на 9,division
+раздели 36 на 6,division
+12 разделить на 4,division
+27 разделить на 3,division
+50 разделить на 5,division
+раздели 64 на 8,division
+сколько будет 45 разделить на 9,division
+раздели 72 на 8,division
+16 разделить на 4,division
+раздели 30 на 6,division
+сколько будет 24 разделить на 3,division
+раздели 49 на 7,division
+18 разделить на 2,division
+раздели 56 на 7,division
+сколько будет 63 разделить на 9,division
+раздели 40 на 8,division
+раздели 25 на 5,division
+сколько будет 32 разделить на 4,division
+раздели 48 на 6,division
+90 разделить на 9,division
+раздели 77 на 7,division
+раздели 14 на 2,division
+сколько будет 28 разделить на 4,division
+раздели 33 на 3,division
+42 разделить на 6,division
+раздели 55 на 5,division
+2 в степени 5,power
+4 в степени 3,power
+5 в степени 4,power
+возведи 6 в степень 2,power
+сколько будет 3 в степени 5,power
+2 в степени 12,power
+возведи 7 в степень 2,power
+10 в степени 3,power
+сколько будет 4 в степени 4,power
+возведи 2 в степень 16,power
+5 в степени 3,power
+возведи 9 в степень 2,power
+сколько будет 2 в степени 6,power
+3 в степени 4,power
+возведи 8 в степень 2,power
+сколько будет 6 в степени 3,power
+2 в степени 7,power
+возведи 4 в степень 2,power
+сколько будет 11 в степени 2,power
+7 в степени 3,power
+умножь 7 на 6,multiplication
+сколько будет 8 умножить на 9,multiplication
+перемножь 6 и 7,multiplication
+11 умножить на 11,multiplication
+сколько будет 4 умножить на 8,multiplication
+умножь 9 на 9,multiplication
+перемножь 5 и 8,multiplication
+3 умножить на 7,multiplication
+сколько будет 6 умножить на 6,multiplication
+умножь 12 на 8,multiplication
+перемножь 7 и 7,multiplication
+сколько будет 9 умножить на 6,multiplication
+умножь 4 на 7,multiplication
+5 умножить на 9,multiplication
+перемножь 8 и 8,multiplication
+ты как,how_are_you
+как ты,how_are_you
+как дела у тебя,how_are_you
+всё хорошо у тебя,how_are_you
+как настроение,how_are_you
+ты в порядке,how_are_you
+как поживаешь,how_are_you
+что нового,how_are_you
+как сам,how_are_you
+как жизнь,how_are_you
+как себя чувствуешь,how_are_you
+всё норм,how_are_you
+как ты там,how_are_you
+что как,how_are_you
+как твои дела,how_are_you

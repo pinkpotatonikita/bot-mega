@@ -5,6 +5,7 @@ from handlers import Handlers
 from logger import log_message, get_db
 from weather_api import weather_api
 from dialog_manager import DialogState
+import tts
 
 # Фразы, которые точно не являются названием города или датой
 NON_CITY_PATTERNS = re.compile(
@@ -29,6 +30,13 @@ class ChatBot:
             "subtraction": self.handlers.handle_subtraction,
             "how_are_you": self.handlers.handle_how_are_you,
             "time":        self.handlers.handle_time,
+            "joke":        self.handlers.handle_joke,
+            "playlist":    self.handlers.handle_playlist,
+            "smalltalk":      self.handlers.handle_smalltalk,
+            "multiplication": self.handlers.handle_multiplication,
+            "division":       self.handlers.handle_division,
+            "power":          self.handlers.handle_power,
+            "math_word":      self.handlers.handle_math_word,
         }
 
     # ── Утилиты ───────────────────────────────────────────────────────────────
@@ -105,6 +113,8 @@ class ChatBot:
             if handler:
                 if intent == 'weather':
                     return handler(match=None, nlp_analysis=nlp_analysis)
+                if intent == 'playlist':
+                    return handler(match=None, original_text=original)
                 return handler(match=None)
 
         # ── Regex-паттерны ────────────────────────────────────────────────────
@@ -114,6 +124,8 @@ class ChatBot:
                 handler = self.handler_map.get(handler_key)
                 if handler_key == 'weather':
                     return handler(match=match, nlp_analysis=nlp_analysis)
+                if handler_key == 'playlist':
+                    return handler(match=match, original_text=original)
                 return handler(match)
 
         return self.handlers.handle_unknown()
@@ -143,9 +155,11 @@ def show_stats(bot: ChatBot) -> None:
 
 def main() -> None:
     bot = ChatBot()
-    print("Чат-бот запущен (FSM + Word Embeddings + NLP). Введите 'пока' для выхода.")
+    print("Чат-бот Димсн запущен (FSM + Word Embeddings + NLP). Введите 'пока' для выхода.")
     print("Команды: /stats — показать статистику")
     print("\nПримеры:")
+    print("         /tts   — включить/выключить озвучку")
+    print("         /clearcache — очистить кэш озвучки")
     print("  'Какая погода?'          → бот спросит город, затем дату")
     print("  'Какая погода в Москве?' → сразу покажет")
     print("  'Будут ли осадки завтра?' → Word Embeddings распознает")
@@ -158,7 +172,8 @@ def main() -> None:
 
         if user_input.lower() in ('пока', 'до свидания', 'exit', 'quit'):
             response = bot.handlers.handle_farewell()
-            print(f"Бот: {response}")
+            print(f"Димсн: {response}")
+            tts.speak(response)
             log_message(user_input, response, bot.handlers.name)
             break
 
@@ -166,8 +181,21 @@ def main() -> None:
             show_stats(bot)
             continue
 
+        if user_input.lower() == '/tts':
+            state = tts.toggle_tts()
+            status = 'ВКЛ' if state else 'ВЫКЛ'
+            print(f'Озвучка: {status}')
+            continue
+
+        if user_input.lower() == '/clearcache':
+            n = tts.clear_cache()
+            print(f'Кэш очищен: удалено {n} файлов')
+            continue
+
+
         response = bot.process(user_input)
-        print(f"Бот: {response}")
+        print(f"Димсн: {response}")
+        tts.speak(response)
         log_message(user_input, response, bot.handlers.name)
 
 
