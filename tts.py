@@ -1,112 +1,152 @@
 """
 Модуль озвучки для чат-бота Димсн.
-Использует gTTS (Google Text-to-Speech) для русского языка.
+Использует Edge TTS (Microsoft) — бесплатно, высокое качество, много голосов.
 Поддерживает асинхронное воспроизведение и кэширование.
+
+Смена голоса прямо в чате:
+  /voice              — показать текущий голос
+  /voice список       — показать все доступные голоса
+  /voice dmitry       — переключиться на голос Дмитрий (мужской)
+  /voice svetlana     — переключиться на голос Светлана (женский)
+  /voice dariya       — переключиться на голос Дарья (женский, мягкий)
 """
 
-import os
 import re
 import hashlib
+import asyncio
 import threading
 import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Папка для кэша аудио файлов
 CACHE_DIR = Path("tts_cache")
 CACHE_DIR.mkdir(exist_ok=True)
 
-# Флаг — включена ли озвучка (можно выключить командой /tts)
 _tts_enabled = True
 
-# Словарь замен для нормализации текста перед озвучкой
-_REPLACEMENTS = [
-    (r'\d+', lambda m: _digits_to_words(m.group())),  # числа → слова (упрощённо)
-    (r'https?://\S+', ''),          # убираем ссылки
-    (r'[*_`~]', ''),                # убираем markdown символы
-    (r'\s+', ' '),                  # двойные пробелы
-]
+VOICES = {
+    "dmitry":   "ru-RU-DmitryNeural",
+    "svetlana": "ru-RU-SvetlanaNeural",
+    "dariya":   "ru-RU-DariyaNeural",
+}
+
+_current_voice = VOICES["dmitry"]
 
 
-def _digits_to_words(num_str: str) -> str:
-    """Простая замена — TTS и так нормально читает цифры, оставляем как есть."""
-    return num_str
+def set_voice(name: str):
+    global _current_voice
+    key = name.lower().strip()
+    if key in VOICES:
+        _current_voice = VOICES[key]
+        return _current_voice
+    return None
+
+
+def get_voice() -> str:
+    return _current_voice
+
+
+def list_voices() -> str:
+    lines = ["Доступные голоса:"]
+    for name, full in VOICES.items():
+        marker = " ◀ текущий" if full == _current_voice else ""
+        lines.append(f"  /voice {name:<10} ({full}){marker}")
+    return "\n".join(lines)
 
 
 def normalize_text(text: str) -> str:
-    """Убирает из текста лишнее перед озвучкой."""
-    text = re.sub(r'https?://\S+', '', text)   # ссылки
-    text = re.sub(r'[*_`~]', '', text)          # markdown
+    # ссылки
+    text = re.sub(r'https?://\S+', '', text)
+    # markdown
+    text = re.sub(r'[*_`~]', '', text)
+    text = re.sub(u'[\U0001F300-\U0001F9FF]', '', text)
+    text = re.sub(u'[\U00002600-\U000027BF]', '', text)
+    text = re.sub(u'[\U0001FA00-\U0001FFFF]', '', text)
+    # скобочные смайлики :) :D ;( и т.д.
+    text = re.sub(r'[:;=]-?[\)\(DdPpOo\[\]/\\]', '', text)
+    # двойные пробелы
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
 
-def _get_cache_path(text: str) -> Path:
-    """Возвращает путь к кэш-файлу для данного текста."""
-    key = hashlib.md5(text.encode('utf-8')).hexdigest()
+def _get_cache_path(text: str, voice: str) -> Path:
+    key = hashlib.md5(f"{voice}:{text}".encode('utf-8')).hexdigest()
     return CACHE_DIR / f"{key}.mp3"
 
 
-def _synthesize(text: str) -> Path | None:
-    """Синтезирует речь и сохраняет в кэш. Возвращает путь к файлу."""
-    cache_path = _get_cache_path(text)
-    if cache_path.exists():
-        return cache_path  # уже есть в кэше
-
+async def _synthesize_async(text: str, voice: str, output_path: Path) -> bool:
     try:
-        from gtts import gTTS
-        tts = gTTS(text=text, lang='ru', slow=False)
-        tts.save(str(cache_path))
-        return cache_path
+        import edge_tts
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(str(output_path))
+        return True
     except ImportError:
-        logger.error("gTTS не установлен. Запустите: pip install gtts")
-        return None
+        logger.error("edge-tts не установлен. Запустите: pip install edge-tts")
+        return False
     except Exception as e:
         logger.error(f"Ошибка синтеза речи: {e}")
-        return None
+        return False
+
+
+def _synthesize(text: str, voice: str):
+    cache_path = _get_cache_path(text, voice)
+    if cache_path.exists():
+        return cache_path
+    success = asyncio.run(_synthesize_async(text, voice, cache_path))
+    return cache_path if success else None
 
 
 def _play(file_path: Path) -> None:
-    """Воспроизводит аудио файл через pygame."""
+    import platform
+    system = platform.system()
     try:
-        import pygame
-        pygame.mixer.init()
-        pygame.mixer.music.load(str(file_path))
-        pygame.mixer.music.play()
-        # Ждём окончания воспроизведения
-        while pygame.mixer.music.get_busy():
-            pygame.time.wait(100)
-    except ImportError:
-        logger.error("pygame не установлен. Запустите: pip install pygame")
+        if system == "Windows":
+            import ctypes
+            # Используем Windows MCI напрямую — играет mp3 без лишних библиотек
+            winmm = ctypes.windll.winmm
+            path = str(file_path.resolve())
+            winmm.mciSendStringW(f'open "{path}" type mpegvideo alias media', None, 0, None)
+            winmm.mciSendStringW('play media wait', None, 0, None)
+            winmm.mciSendStringW('close media', None, 0, None)
+        elif system == "Darwin":
+            import subprocess
+            subprocess.run(["afplay", str(file_path)], check=True)
+        else:
+            import subprocess
+            subprocess.run(["mpg123", "-q", str(file_path)], check=True)
     except Exception as e:
         logger.error(f"Ошибка воспроизведения: {e}")
 
 
 def speak(text: str) -> None:
-    """
-    Озвучивает текст асинхронно (не блокирует бота).
-    Если озвучка выключена — ничего не делает.
-    """
-    global _tts_enabled
     if not _tts_enabled or not text or not text.strip():
         return
-
     clean = normalize_text(text)
     if not clean:
         return
+    voice = _current_voice
+
+    # Выставляем флаг ДО запуска треда — voice.py сразу заблокирует запись
+    try:
+        import voice as _voice_mod
+        _voice_mod.set_speaking(True)
+    except ImportError:
+        _voice_mod = None
 
     def _worker():
-        path = _synthesize(clean)
-        if path:
-            _play(path)
+        try:
+            path = _synthesize(clean, voice)
+            if path:
+                _play(path)
+        finally:
+            if _voice_mod is not None:
+                _voice_mod.set_speaking(False)
 
-    thread = threading.Thread(target=_worker, daemon=True)
-    thread.start()
+    threading.Thread(target=_worker, daemon=True).start()
 
 
 def toggle_tts() -> bool:
-    """Включает/выключает озвучку. Возвращает новое состояние."""
     global _tts_enabled
     _tts_enabled = not _tts_enabled
     return _tts_enabled
@@ -117,7 +157,6 @@ def is_enabled() -> bool:
 
 
 def clear_cache() -> int:
-    """Удаляет все кэшированные аудио файлы. Возвращает количество удалённых."""
     count = 0
     for f in CACHE_DIR.glob("*.mp3"):
         f.unlink()

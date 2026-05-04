@@ -99,9 +99,7 @@ class ChatBot:
         if state == DialogState.WAIT_DATE:
             return self.handlers.handle_date_response(original)
 
-        # ══════════════════════════════════════════════════════════════════════
-        # START: стандартный маршрут — NLP → regex
-        # ══════════════════════════════════════════════════════════════════════
+
 
         # ── NLP-анализ ────────────────────────────────────────────────────────
         nlp_analysis = self.handlers.process_with_nlp(original)
@@ -154,28 +152,60 @@ def show_stats(bot: ChatBot) -> None:
 # ── Точка входа ───────────────────────────────────────────────────────────────
 
 def main() -> None:
+    import time
+    import voice
+
     bot = ChatBot()
-    print("Чат-бот Димсн запущен (FSM + Word Embeddings + NLP). Введите 'пока' для выхода.")
-    print("Команды: /stats — показать статистику")
-    print("\nПримеры:")
-    print("         /tts   — включить/выключить озвучку")
-    print("         /clearcache — очистить кэш озвучки")
-    print("  'Какая погода?'          → бот спросит город, затем дату")
-    print("  'Какая погода в Москве?' → сразу покажет")
+
+    # Голосовой ввод включён по умолчанию
+    voice_mode = True
+
+    # Предзагружаем Whisper сразу при старте — чтобы не было задержки на первом listen()
+    voice.preload_model("small")
+
+    print("Чат-бот Димсн запущен (FSM + Word Embeddings + NLP + Whisper ASR).")
+    print("Введите 'пока' или скажите 'пока' для выхода.")
+    print("\nКоманды:")
+    print("  /mic              — переключить голосовой/текстовый ввод")
+    print("  /stats            — показать статистику")
+    print("  /tts              — включить/выключить озвучку")
+    print("  /clearcache       — очистить кэш озвучки")
+    print("  /voice            — текущий голос и список")
+    print("  /voice dmitry     — мужской | svetlana — женский | dariya — мягкий")
+    print("\nПримеры фраз:")
+    print("  'Какая погода?'           → бот спросит город, затем дату")
+    print("  'Какая погода в Москве?'  → сразу покажет")
     print("  'Будут ли осадки завтра?' → Word Embeddings распознает")
+    print("-" * 50)
+    print("🎙️  Голосовой ввод: ВКЛ  (команда /mic для переключения)")
     print("-" * 50)
 
     while True:
-        user_input = input("Вы: ").strip()
-        if not user_input:
-            continue
+        # ── Получаем ввод (голос или текст) ──────────────────────────────────
+        if voice_mode:
+            user_input = voice.listen(seconds=7, model_name="small")
+            if not user_input:
+                print("[Voice] Ничего не распознано, попробуйте ещё раз.")
+                continue
+        else:
+            user_input = input("Вы: ").strip()
+            if not user_input:
+                continue
 
+        # ── Системные команды (работают в обоих режимах) ──────────────────────
         if user_input.lower() in ('пока', 'до свидания', 'exit', 'quit'):
             response = bot.handlers.handle_farewell()
             print(f"Димсн: {response}")
             tts.speak(response)
             log_message(user_input, response, bot.handlers.name)
+            time.sleep(4)  # ждём окончания озвучки прощания
             break
+
+        if user_input.lower() == '/mic':
+            voice_mode = not voice_mode
+            status = 'ВКЛ 🎙️' if voice_mode else 'ВЫКЛ ⌨️'
+            print(f'Голосовой ввод: {status}')
+            continue
 
         if user_input.lower() == '/stats':
             show_stats(bot)
@@ -192,7 +222,20 @@ def main() -> None:
             print(f'Кэш очищен: удалено {n} файлов')
             continue
 
+        if user_input.lower() in ('/voice', '/voice список'):
+            print(tts.list_voices())
+            continue
 
+        if user_input.lower().startswith('/voice '):
+            name = user_input[7:].strip()
+            result = tts.set_voice(name)
+            if result:
+                print(f'Голос изменён: {result}')
+            else:
+                print(f'Голос "{name}" не найден. Доступны: dmitry, svetlana, dariya')
+            continue
+
+        # ── Основная обработка ────────────────────────────────────────────────
         response = bot.process(user_input)
         print(f"Димсн: {response}")
         tts.speak(response)
