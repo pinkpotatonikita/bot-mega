@@ -153,39 +153,40 @@ def show_stats(bot: ChatBot) -> None:
 
 def main() -> None:
     import time
-    import voice
 
     bot = ChatBot()
 
-    # Голосовой ввод включён по умолчанию
-    voice_mode = True
-
-    # Предзагружаем Whisper сразу при старте — чтобы не было задержки на первом listen()
-    voice.preload_model("small")
+    # Текстовый режим по умолчанию, голосовой (PTT) включается по /mic
+    ptt_mode = False
+    voice = None  # загружается лениво при первом /mic
 
     print("Чат-бот Димсн запущен (FSM + Word Embeddings + NLP + Whisper ASR).")
-    print("Введите 'пока' или скажите 'пока' для выхода.")
+    print("Введите 'пока' для выхода.")
     print("\nКоманды:")
-    print("  /mic              — переключить голосовой/текстовый ввод")
-    print("  /stats            — показать статистику")
-    print("  /tts              — включить/выключить озвучку")
-    print("  /clearcache       — очистить кэш озвучки")
-    print("  /voice            — текущий голос и список")
-    print("  /voice dmitry     — мужской | svetlana — женский | dariya — мягкий")
+    print("  /mic              \u2014 включить/выключить голосовой ввод")
+    print("  /stats            \u2014 показать статистику")
+    print("  /tts              \u2014 включить/выключить озвучку")
+    print("  /clearcache       \u2014 очистить кэш озвучки")
+    print("  /voice            \u2014 текущий голос и список")
+    print("  /voice dmitry     \u2014 мужской | svetlana \u2014 женский | dariya \u2014 мягкий")
     print("\nПримеры фраз:")
-    print("  'Какая погода?'           → бот спросит город, затем дату")
-    print("  'Какая погода в Москве?'  → сразу покажет")
-    print("  'Будут ли осадки завтра?' → Word Embeddings распознает")
+    print("  'Какая погода?'           \u2192 бот спросит город, затем дату")
+    print("  'Какая погода в Москве?'  \u2192 сразу покажет")
+    print("  'Составь плейлист' \u2192 составит по настроению")
     print("-" * 50)
-    print("🎙️  Голосовой ввод: ВКЛ  (команда /mic для переключения)")
+    print("\u2328\ufe0f   Текстовый ввод  (команда /mic для PTT-режима)")
     print("-" * 50)
 
     while True:
         # ── Получаем ввод (голос или текст) ──────────────────────────────────
-        if voice_mode:
-            user_input = voice.listen(seconds=7, model_name="small")
+        if ptt_mode:
+            user_input = voice.listen_ptt(model_name="small")
+            if user_input == "\x1b":  # ESC — выход из голосового режима
+                ptt_mode = False
+                print("Голосовой ввод: ВЫКЛ ⌨️")
+                continue
             if not user_input:
-                print("[Voice] Ничего не распознано, попробуйте ещё раз.")
+                print("[PTT] Ничего не распознано, попробуйте ещё раз.")
                 continue
         else:
             user_input = input("Вы: ").strip()
@@ -202,8 +203,13 @@ def main() -> None:
             break
 
         if user_input.lower() == '/mic':
-            voice_mode = not voice_mode
-            status = 'ВКЛ 🎙️' if voice_mode else 'ВЫКЛ ⌨️'
+            import voice as _voice_mod
+            if voice is None:
+                print("[Voice] Загружаю Whisper, подождите...")
+                _voice_mod.preload_model("small")
+            voice = _voice_mod
+            ptt_mode = not ptt_mode
+            status = 'ВКЛ 🎙️ (зажмите ПРОБЕЛ чтобы говорить)' if ptt_mode else 'ВЫКЛ ⌨️'
             print(f'Голосовой ввод: {status}')
             continue
 

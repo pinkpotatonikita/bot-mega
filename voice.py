@@ -1,22 +1,7 @@
-"""
-Модуль голосового ввода для чат-бота Димсн.
-Использует OpenAI Whisper для распознавания речи (оффлайн).
-
-Защита от самозаписи:
-  - tts.py вызывает set_speaking(True/False)
-  - record_audio() активно ждёт в цикле пока флаг не снят + пауза после
-
-Управление записью:
-  - Запись идёт max seconds секунд
-  - Enter досрочно останавливает запись
-  - Если после Enter введён текст — он используется вместо голоса
-"""
-
 import re
 import time
 import threading
 import logging
-import sys
 
 logger = logging.getLogger(__name__)
 
@@ -71,109 +56,112 @@ def clean_asr_text(text: str) -> str:
     return text
 
 
-# ── Запись аудио с возможностью досрочной остановки ──────────────────────────
-def record_audio(filename: str = "input.wav", seconds: int = 7, fs: int = 16000):
-    """
-    Записывает аудио. Параллельно ждёт Enter:
-      - Enter без текста  → досрочно останавливает запись, возвращает None
-      - Enter с текстом   → останавливает запись, возвращает введённый текст
-      - Таймаут           → останавливает запись, возвращает None (идёт транскрипция)
-    Возвращает: None (использовать голос) или str (использовать текст напрямую)
-    """
-    import sounddevice as sd
-    from scipy.io.wavfile import write
-
-    # Ждём пока бот закончит говорить
-    waited = False
-    while is_bot_speaking():
-        if not waited:
-            print("[Voice] Жду окончания речи бота...")
-            waited = True
-        time.sleep(0.05)
-    if waited:
-        time.sleep(1.0)
-
-    # Результат от потока ввода
-    _input_result = [None]   # None = не нажали, str = ввели текст или пустую строку
-    _stop_event = threading.Event()
-
-    def _wait_for_enter():
-        try:
-            line = sys.stdin.readline()
-            _input_result[0] = line.strip()
-        except Exception:
-            _input_result[0] = ""
-        _stop_event.set()
-
-    input_thread = threading.Thread(target=_wait_for_enter, daemon=True)
-
-    print(f"[Voice] Говорите... ({seconds} сек)  |  Enter — остановить / ввести команду")
-    audio_frames = []
-
-    # Пишем чанками по 0.1 сек, проверяем стоп
-    chunk = int(fs * 0.1)
-    recorded_chunks = 0
-    total_chunks = int(seconds * 10)  # секунды * 10 чанков в секунду
-
-    input_thread.start()
-
-    with sd.InputStream(samplerate=fs, channels=1, dtype="int16") as stream:
-        while recorded_chunks < total_chunks:
-            if _stop_event.is_set():
-                break
-            data, _ = stream.read(chunk)
-            audio_frames.append(data)
-            recorded_chunks += 1
-
-    _stop_event.set()  # на случай если таймаут сработал раньше Enter
-
-    # Сохраняем то что успели записать
-    import numpy as np
-    from scipy.io.wavfile import write as wav_write
-    if audio_frames:
-        audio = np.concatenate(audio_frames, axis=0)
-        wav_write(filename, fs, audio)
-
-    # Возвращаем текст если пользователь что-то напечатал
-    typed = _input_result[0]
-    if typed is not None and typed != "":
-        # Напечатал текст — использовать его напрямую
-        return typed
-    # Нажал просто Enter или таймаут — использовать голос
-    return None
-
-
 # ── Транскрипция ──────────────────────────────────────────────────────────────
 def speech_to_text(filename: str = "input.wav", model_name: str = "small") -> str:
     model = _get_model(model_name)
     result = model.transcribe(
         filename,
         language="ru",
-        initial_prompt="Это разговор с чат-ботом на русском языке. Пользователь называет своё имя, спрашивает погоду, время, задаёт вопросы."
+        initial_prompt="Это разговор с чат-ботом на русском языке. Пользователь называет своё имя, спрашивает погоду, время, задаёт вопросы.",
     )
     return result["text"]
 
 
-# ── Главная функция ───────────────────────────────────────────────────────────
-def listen(seconds: int = 7, model_name: str = "small") -> str:
+# ── PTT: запись пока зажат ПРОБЕЛ ────────────────────────────────────────────
+def listen_ptt(model_name: str = "small") -> str:
     """
-    Полный цикл:
-      1. Ждёт окончания TTS
-      2. Записывает микрофон (с возможностью прервать Enter)
-      3. Если Enter с текстом — возвращает текст напрямую (команды и т.д.)
-      4. Если Enter без текста или таймаут — транскрибирует голос
-      5. Очищает и возвращает строку
+    PTT-цикл (Push-To-Talk):
+      1. Ждёт окончания TTS бота
+      2. Выводит «Зажмите ПРОБЕЛ чтобы говорить»
+      3. При нажатии ПРОБЕЛА — начинает запись, выводит «🔴 Говорите...»
+      4. При отпускании ПРОБЕЛА — останавливает запись
+      5. Транскрибирует и возвращает текст
+
+    Требует: pip install pynput
     """
-    typed = record_audio(seconds=seconds)
+    import sounddevice as sd
+    import numpy as np
+    from scipy.io.wavfile import write as wav_write
 
-    if typed is not None:
-        # Пользователь напечатал что-то — возвращаем как есть (без clean, чтобы команды работали)
-        print(f"[Voice] Введено: «{typed}»")
-        return typed
+    try:
+        from pynput import keyboard as kb
+    except ImportError:
+        logger.error("pynput не установлен: pip install pynput")
+        raise
 
-    # Голосовой ввод — транскрибируем
-    raw = speech_to_text(model_name=model_name)
+    # Ждём пока бот закончит говорить
+    if is_bot_speaking():
+        print("[Voice] Жду окончания речи бота...")
+        while is_bot_speaking():
+            time.sleep(0.05)
+        time.sleep(0.3)
+
+    print("Зажмите ПРОБЕЛ чтобы говорить...")
+
+    fs = 16000
+    filename = "input.wav"
+
+    space_down = threading.Event()
+    space_up   = threading.Event()
+    esc_pressed = threading.Event()
+
+    def on_press(key):
+        if key == kb.Key.space and not space_down.is_set():
+            space_down.set()
+        elif key == kb.Key.esc:
+            esc_pressed.set()
+            space_down.set()   # разблокируем ожидание
+
+    def on_release(key):
+        if key == kb.Key.space:
+            space_up.set()
+            return False  # останавливаем listener
+        elif key == kb.Key.esc:
+            return False
+
+    listener = kb.Listener(on_press=on_press, on_release=on_release)
+    listener.start()
+
+    # Ждём нажатия пробела (или Esc для выхода)
+    print("Зажмите ПРОБЕЛ чтобы говорить  |  ESC — выйти из голосового режима")
+    space_down.wait()
+
+    if esc_pressed.is_set():
+        listener.stop()
+        return "\x1b"  # сигнал выхода
+
+    print("🔴 Говорите...")
+
+    # Запись в фоне пока пробел зажат
+    audio_frames = []
+    stop_rec = threading.Event()
+
+    def _record():
+        chunk = int(fs * 0.05)
+        with sd.InputStream(samplerate=fs, channels=1, dtype="int16") as stream:
+            while not stop_rec.is_set():
+                data, _ = stream.read(chunk)
+                audio_frames.append(data)
+
+    rec_thread = threading.Thread(target=_record, daemon=True)
+    rec_thread.start()
+
+    space_up.wait()          # ждём отпускания
+    stop_rec.set()
+    rec_thread.join(timeout=2.0)
+    listener.stop()
+
+    if not audio_frames:
+        return ""
+
+    audio = np.concatenate(audio_frames, axis=0)
+    wav_write(filename, fs, audio)
+
+    raw   = speech_to_text(filename, model_name)
     clean = clean_asr_text(raw)
-    if clean:
-        print(f"[Voice] Распознано: «{clean}»")
     return clean
+
+
+# listen() оставлен для обратной совместимости, но просто вызывает PTT
+def listen(seconds: int = 7, model_name: str = "small") -> str:
+    return listen_ptt(model_name=model_name)
